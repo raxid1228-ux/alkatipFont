@@ -1,0 +1,1171 @@
+<!DOCTYPE html>
+<html lang="ug" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>بۇلاق | ھەشەمەتلىك 3D كىتاب سارىيى</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Google Fonts Fallback for Arabic/Uyghur Script -->
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Noto+Kufi+Arabic:wght@300;400;600;800&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        obsidian: '#06080e',
+                        midnight: '#0c1220',
+                        gold: {
+                            light: '#fbe69b',
+                            DEFAULT: '#d4af37',
+                            dark: '#997a15',
+                        },
+                        bulaq: {
+                            cyan: '#00f2fe',
+                            blue: '#4facfe'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* ئۇيغۇرچە خەت نۇسخىسى ۋە ئاساسىي ئۇسلۇب */
+        * {
+            font-family: 'UKIJ Ekran', 'UKIJ Tuz Tom', 'ALKATIP Tor', 'Noto Kufi Arabic', sans-serif;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background-color: #05070b;
+            color: #f3f4f6;
+            overflow-x: hidden;
+        }
+
+        /* ئالتۇن رەڭلىك تېكىست ئۈنۈمى */
+        .gold-gradient-text {
+            background: linear-gradient(135deg, #fff6d1 0%, #d4af37 45%, #aa7c11 75%, #f3e5ab 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .bulaq-gradient-text {
+            background: linear-gradient(135deg, #a8ff78 0%, #78ffd6 50%, #00f2fe 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* ھەشەمەتلىك ئەينەك ئۈنۈمى (Glassmorphism) */
+        .luxury-glass {
+            background: rgba(15, 22, 38, 0.65);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+        }
+
+        .luxury-glass-hover {
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .luxury-glass-hover:hover {
+            border-color: rgba(212, 175, 55, 0.6);
+            box-shadow: 0 25px 60px rgba(212, 175, 55, 0.15), 0 0 25px rgba(0, 242, 254, 0.1);
+            transform: translateY(-6px);
+        }
+
+        /* ================= 3D كىتاب سىستېمىسى (CSS 3D Engine) ================= */
+        .scene-3d {
+            perspective: 1400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .book-3d {
+            position: relative;
+            width: 190px;
+            height: 270px;
+            transform-style: preserve-3d;
+            transform: rotateY(28deg) rotateX(8deg);
+            transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+            cursor: pointer;
+        }
+
+        /* مائۇس بارغاندا 3D كىتابنىڭ ھەرىكىتى */
+        .book-card:hover .book-3d {
+            transform: rotateY(42deg) rotateX(12deg) translateZ(25px) translateY(-10px);
+        }
+
+        /* چوڭ باش بەت 3D كىتابى */
+        .hero-book-3d {
+            width: 260px;
+            height: 370px;
+            transform: rotateY(32deg) rotateX(12deg);
+            transition: transform 0.15s ease-out;
+        }
+
+        /* كىتابنىڭ 6 يۈزى */
+        .book-front, .book-back, .book-spine, .book-pages, .book-top, .book-bottom {
+            position: absolute;
+            transform-style: preserve-3d;
+        }
+
+        /* ئالدى مۇقاۋا (ئېچىلالايدىغان) */
+        .book-front {
+            width: 100%;
+            height: 100%;
+            transform: translateZ(22px);
+            transform-origin: right center; /* ئۇيغۇرچە كىتاب ئوڭدىن ئېچىلىدۇ */
+            transition: transform 0.9s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 6px 2px 2px 6px;
+            box-shadow: -8px 10px 25px rgba(0,0,0,0.6), inset 4px 0 10px rgba(0,0,0,0.4);
+        }
+
+        /* كىتاب مۇقاۋىسى ئېچىلغان ھالەت */
+        .book-3d.is-open .book-front {
+            transform: translateZ(22px) rotateY(155deg);
+        }
+
+        .front-cover-outer {
+            position: absolute;
+            inset: 0;
+            backface-visibility: hidden;
+            border-radius: 6px 2px 2px 6px;
+            overflow: hidden;
+            border: 1px solid rgba(212, 175, 55, 0.5);
+        }
+
+        .front-cover-inner {
+            position: absolute;
+            inset: 0;
+            transform: rotateY(180deg);
+            backface-visibility: hidden;
+            background: linear-gradient(to left, #e6dcc8, #f7f1e3);
+            color: #2c221e;
+            padding: 18px;
+            border-radius: 2px 6px 6px 2px;
+            box-shadow: inset -10px 0 20px rgba(0,0,0,0.25);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            text-align: center;
+            border: 2px solid #d4af37;
+        }
+
+        /* ئىچكى بەت (كىتاب ئېچىلغاندا كۆرۈنىدىغان بەت) */
+        .book-inside-page {
+            position: absolute;
+            inset: 4px;
+            transform: translateZ(21px);
+            background: linear-gradient(to right, #fcf8f2, #e8dec8);
+            color: #1f1a17;
+            padding: 20px 16px;
+            border-radius: 4px 2px 2px 4px;
+            box-shadow: inset -12px 0 25px rgba(0,0,0,0.25);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow: hidden;
+        }
+
+        /* ئارقا مۇقاۋا */
+        .book-back {
+            width: 100%;
+            height: 100%;
+            transform: translateZ(-22px) rotateY(180deg);
+            border-radius: 2px 6px 6px 2px;
+            border: 1px solid rgba(212, 175, 55, 0.4);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.85);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        /* كىتاب دۈمبىسى (تومى - ئوڭ تەرەپتە) */
+        .book-spine {
+            width: 44px;
+            height: 100%;
+            right: -22px;
+            transform: rotateY(90deg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-top: 1px solid rgba(212, 175, 55, 0.5);
+            border-bottom: 1px solid rgba(212, 175, 55, 0.5);
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.6);
+        }
+
+        .spine-title {
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            font-weight: bold;
+            letter-spacing: 1px;
+            color: #fbe69b;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+            font-size: 0.9rem;
+        }
+
+        /* كىتاب بەت قاتلاملىرى (سول تەرەپ) */
+        .book-pages {
+            width: 42px;
+            height: calc(100% - 8px);
+            top: 4px;
+            left: -20px;
+            transform: rotateY(-90deg);
+            background: repeating-linear-gradient(
+                90deg,
+                #f5eedc 0px,
+                #f5eedc 2px,
+                #d8cbb0 2px,
+                #d8cbb0 4px
+            );
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.3);
+        }
+
+        /* كىتابنىڭ ئۈستى ۋە ئاستى قەغەز يۈزى */
+        .book-top {
+            width: calc(100% - 6px);
+            height: 42px;
+            top: -17px;
+            left: 2px;
+            transform: rotateX(90deg);
+            background: repeating-linear-gradient(
+                0deg,
+                #f5eedc 0px,
+                #f5eedc 2px,
+                #d8cbb0 2px,
+                #d8cbb0 4px
+            );
+        }
+
+        .book-bottom {
+            width: calc(100% - 6px);
+            height: 42px;
+            bottom: -17px;
+            left: 2px;
+            transform: rotateX(-90deg);
+            background: repeating-linear-gradient(
+                0deg,
+                #e6dec8 0px,
+                #e6dec8 2px,
+                #c5b89b 2px,
+                #c5b89b 4px
+            );
+            box-shadow: 0 30px 40px rgba(0,0,0,0.9);
+        }
+
+        /* مۇقاۋا ئۈستىدىكى ئالتۇن نەقىش رامكىسى */
+        .ornate-border {
+            border: 2px solid rgba(212, 175, 55, 0.65);
+            position: relative;
+        }
+        .ornate-border::before {
+            content: '';
+            position: absolute;
+            inset: 5px;
+            border: 1px dashed rgba(212, 175, 55, 0.45);
+            pointer-events: none;
+        }
+
+        /* لەيلەپ تۇرۇش ئۈنۈمى */
+        @keyframes floatSlow {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-14px); }
+        }
+        .animate-float {
+            animation: floatSlow 5s ease-in-out infinite;
+        }
+
+        /* ئالتۇن نۇر چاقناش ئۈنۈمى */
+        .gold-button {
+            background: linear-gradient(135deg, #d4af37 0%, #f9e29c 50%, #aa7c11 100%);
+            background-size: 200% auto;
+            color: #06080e;
+            transition: 0.4s;
+        }
+        .gold-button:hover {
+            background-position: right center;
+            box-shadow: 0 0 25px rgba(212, 175, 55, 0.6);
+            transform: scale(1.03);
+        }
+
+        /* ئۆزگىچە تاختا (Scrollbar) */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #05070b; }
+        ::-webkit-scrollbar-thumb { background: linear-gradient(#d4af37, #00f2fe); border-radius: 4px; }
+    </style>
+</head>
+<body class="relative min-h-screen selection:bg-gold selection:text-obsidian">
+
+    <!-- ئارقا كۆرۈنۈشتىكى نۇرلۇق بۇلاق ۋە ئالتۇن زەررىچىلەر (Canvas) -->
+    <canvas id="particleCanvas" class="fixed inset-0 pointer-events-none z-0 opacity-60"></canvas>
+    <div class="fixed top-[-15%] right-[-10%] w-[550px] h-[550px] rounded-full bg-gold/10 blur-[150px] pointer-events-none z-0"></div>
+    <div class="fixed bottom-[-15%] left-[-10%] w-[600px] h-[600px] rounded-full bg-bulaq-cyan/10 blur-[160px] pointer-events-none z-0"></div>
+
+    <!-- ================= 1. ئۈستى تىزىملىك (Navbar) ================= -->
+    <header class="sticky top-0 z-40 luxury-glass border-b border-gold/20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-8 h-20 flex items-center justify-between gap-4">
+            <!-- ماركا (Logo) -->
+            <a href="#" class="flex items-center gap-3 group">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-gold via-amber-600 to-bulaq-cyan p-[2px] shadow-lg shadow-gold/20 group-hover:rotate-12 transition-transform duration-300">
+                    <div class="w-full h-full bg-obsidian rounded-2xl flex items-center justify-center">
+                        <i class="fa-solid fa-droplet text-xl text-transparent bg-clip-text bg-gradient-to-tr from-bulaq-cyan to-gold"></i>
+                    </div>
+                </div>
+                <div>
+                    <span class="text-3xl font-extrabold tracking-wider gold-gradient-text">بۇلاق</span>
+                    <span class="block text-[11px] text-bulaq-cyan/80 tracking-widest">3D LUXURY BOOKSTORE</span>
+                </div>
+            </a>
+
+            <!-- ئىزدەش رامكىسى -->
+            <div class="hidden md:flex flex-1 max-w-md mx-6">
+                <div class="relative w-full">
+                    <input type="text" id="searchInput" oninput="filterBooks()" placeholder="كىتاب ئىسمى يامۇ ئاپتورنى ئىزدەڭ (مەسىلەن: قۇتادغۇبىلىك، ئىز)..." 
+                        class="w-full bg-midnight/80 border border-gold/30 rounded-full py-2.5 pr-11 pl-4 text-sm text-white placeholder-gray-400 focus:outline-none focus:border-bulaq-cyan focus:ring-1 focus:ring-bulaq-cyan transition">
+                    <i class="fa-solid fa-magnifying-glass absolute right-4 top-3 text-gold"></i>
+                </div>
+            </div>
+
+            <!-- ئوڭ تەرەپ كۇنۇپكىلار -->
+            <div class="flex items-center gap-4">
+                <button onclick="open3DModal(0)" class="hidden sm:flex items-center gap-2 px-4 py-2 rounded-full border border-bulaq-cyan/40 bg-bulaq-cyan/10 text-bulaq-cyan text-sm hover:bg-bulaq-cyan hover:text-obsidian transition font-semibold">
+                    <i class="fa-solid fa-cube animate-spin" style="animation-duration: 6s;"></i>
+                    <span>3D تەجرىبىخانا</span>
+                </button>
+
+                <!-- سېۋەت كۇنۇپكىسى -->
+                <button onclick="toggleCart()" class="relative p-3 rounded-full luxury-glass border border-gold/40 hover:border-gold text-gold transition group">
+                    <i class="fa-solid fa-bag-shopping text-lg group-hover:scale-110 transition"></i>
+                    <span id="cartBadge" class="absolute -top-1 -left-1 w-6 h-6 rounded-full bg-gradient-to-r from-bulaq-cyan to-blue-500 text-obsidian text-xs font-extrabold flex items-center justify-center shadow-lg">2</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- ================= 2. باش بەت 3D كۆرگەزمە رايونى (Hero Section) ================= -->
+    <section id="heroSection" class="relative z-10 max-w-7xl mx-auto px-4 sm:px-8 pt-10 pb-20 lg:py-24">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+            
+            <!-- تېكىست چۈشەندۈرۈش قىسمى -->
+            <div class="lg:col-span-7 space-y-6 text-right">
+                <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gold/10 border border-gold/30 text-gold text-xs sm:text-sm">
+                    <span class="w-2 h-2 rounded-full bg-bulaq-cyan animate-ping"></span>
+                    <span>ئەڭ يېڭى ئەۋلاد 3 ئۆلچەملىك رەقەملىك ۋە باسما كىتاب سارىيى</span>
+                </div>
+
+                <h1 class="text-4xl sm:text-6xl lg:text-7xl font-black leading-tight">
+                    تەپەككۇر قەسرىدىكى <br>
+                    <span class="gold-gradient-text">ئۆچمەس مەرىپەت</span>
+                    <span class="bulaq-gradient-text">بۇلىقى</span>
+                </h1>
+
+                <p class="text-gray-300 text-base sm:text-lg leading-relaxed max-w-2xl">
+                    «بۇلاق» — سىزگە كىتاب تاللاشنىڭ پۈتۈنلەي يېڭىچە ھەشەمەتلىك تۇيغۇسىنى بېغىشلايدۇ. ھەر بىر كىتابنى سېتىۋېلىشتىن بۇرۇن ئۇنى <strong class="text-gold">3D بوشلۇقتا 360 گىرادۇس ئايلاندۇرۇپ</strong> كۆرۈڭ، مۇقاۋىسىنى ئېچىپ ۋاراقلاڭ ۋە ئەڭ نەپىس ئالتۇن ھەللىك نەشرىنى ئۆيىڭىزگە ئەكەلدۈرۈڭ.
+                </p>
+
+                <!-- كۇنۇپكىلار -->
+                <div class="flex flex-wrap items-center gap-4 pt-2">
+                    <a href="#catalog" class="gold-button px-8 py-4 rounded-full font-extrabold text-base flex items-center gap-3 shadow-xl">
+                        <span>كىتابلار دۇنياسىغا كىرىش</span>
+                        <i class="fa-solid fa-arrow-left"></i>
+                    </a>
+                    <button onclick="toggleHeroBookOpen()" class="px-7 py-4 rounded-full luxury-glass border border-gold/40 hover:border-bulaq-cyan text-white font-semibold flex items-center gap-3 transition">
+                        <i class="fa-solid fa-book-open text-bulaq-cyan"></i>
+                        <span id="heroOpenBtnText">مۇقاۋىنى 3D ئېچىپ ئوقۇش</span>
+                    </button>
+                </div>
+
+                <!-- ئىستاتىستىكا -->
+                <div class="grid grid-cols-3 gap-4 pt-8 border-t border-white/10 max-w-xl">
+                    <div>
+                        <div class="text-2xl sm:text-3xl font-black gold-gradient-text">+18,500</div>
+                        <div class="text-xs text-gray-400 mt-1">نادىر ۋە كىلاسسىك ئەسەرلەر</div>
+                    </div>
+                    <div>
+                        <div class="text-2xl sm:text-3xl font-black bulaq-gradient-text">360° 3D</div>
+                        <div class="text-xs text-gray-400 mt-1">ھەقىقىي كۆرۈش تېخنىكىسى</div>
+                    </div>
+                    <div>
+                        <div class="text-2xl sm:text-3xl font-black gold-gradient-text">%100</div>
+                        <div class="text-xs text-gray-400 mt-1">ئالتۇن مۆھۈرلۈك ئەسلى نەشرى</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3D Interaktiv كىتاب سەھنىسى -->
+            <div class="lg:col-span-5 flex flex-col items-center justify-center relative">
+                <!-- ئارقا نۇر چەمبىرىكى -->
+                <div class="absolute w-80 h-80 rounded-full border border-gold/20 animate-spin" style="animation-duration: 25s;"></div>
+                <div class="absolute w-96 h-96 rounded-full border border-dashed border-bulaq-cyan/20 animate-spin" style="animation-duration: 40s; animation-direction: reverse;"></div>
+
+                <div class="scene-3d py-10 animate-float" id="heroScene">
+                    <div id="heroBook" class="book-3d hero-book-3d" onclick="toggleHeroBookOpen()">
+                        <!-- ئىچكى بەت (ئېچىلغاندا كۆرۈنىدۇ) -->
+                        <div class="book-inside-page">
+                            <div class="border-b border-amber-900/30 pb-2 flex justify-between items-center text-[11px] text-amber-900 font-bold">
+                                <span>قۇتادغۇبىلىك</span>
+                                <span>بەت: ١٤</span>
+                            </div>
+                            <div class="my-auto space-y-3 text-center px-2">
+                                <i class="fa-solid fa-feather-pointed text-amber-700 text-xl"></i>
+                                <p class="text-xs sm:text-sm font-bold leading-relaxed text-amber-950">
+                                    «بىلىم بىل، ئۇقۇش بىل، قىلغىن ئىنسانلىق،<br>
+                                    بىلىمسىز كىشىگە يوقتۇر شادلىق...<br>
+                                    ئەقىل قەيەردە بولسا ئۇلۇغلۇق بولۇر،<br>
+                                    بىلىم كىمدە بولسا بۈيۈكلۈك ئالۇر.»
+                                </p>
+                                <div class="text-[11px] text-amber-800 italic">— يۈسۈپ خاس ھاجىپ</div>
+                            </div>
+                            <div class="text-[10px] text-center text-amber-900/70 border-t border-amber-900/20 pt-2">
+                                بۇلاق نەشرىياتى • ئالتۇن يىپەك نۇسخىسى
+                            </div>
+                        </div>
+
+                        <!-- ئالدى مۇقاۋا -->
+                        <div class="book-front">
+                            <div class="front-cover-outer bg-gradient-to-br from-[#0e221b] via-[#071310] to-[#040907] p-4 flex flex-col justify-between">
+                                <div class="ornate-border w-full h-full p-5 flex flex-col justify-between items-center text-center relative">
+                                    <div class="text-[10px] tracking-widest text-gold/80 uppercase">بۇلاق خەزىنىسى • ١٠٦٩</div>
+                                    
+                                    <div class="my-auto space-y-3">
+                                        <div class="w-16 h-16 mx-auto rounded-full border-2 border-gold/60 flex items-center justify-center bg-gold/10 shadow-inner">
+                                            <i class="fa-solid fa-crown text-2xl text-gold"></i>
+                                        </div>
+                                        <h2 class="text-3xl font-black gold-gradient-text pt-2">قۇتادغۇبىلىك</h2>
+                                        <p class="text-xs text-amber-200/80">بەختكە باشلايدىغان بىلىم</p>
+                                    </div>
+
+                                    <div class="w-full border-t border-gold/30 pt-3">
+                                        <div class="text-xs font-bold text-gold">يۈسۈپ خاس ھاجىپ</div>
+                                        <div class="text-[10px] text-gray-400 mt-0.5">ھەشەمەتلىك ئالتۇن ھەللىك نەشرى</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- مۇقاۋىنىڭ ئىچكى يۈزى -->
+                            <div class="front-cover-inner">
+                                <div class="border border-amber-900/30 p-3 h-full flex flex-col justify-center items-center">
+                                    <i class="fa-solid fa-droplet text-amber-700 text-2xl mb-2"></i>
+                                    <div class="text-xs font-bold text-amber-950">«بۇلاق» كىتابخانىسىنىڭ مەخسۇس كوللېكسىيە مۆھۈرى</div>
+                                    <div class="text-[11px] text-amber-800 mt-3">نۇسخا نومۇرى: #0001-BLQ</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- كىتاب دۈمبىسى (Spine) -->
+                        <div class="book-spine bg-gradient-to-b from-[#0e221b] via-[#091813] to-[#040907]">
+                            <span class="spine-title">قۇتادغۇبىلىك — يۈسۈپ خاس ھاجىپ</span>
+                        </div>
+
+                        <!-- كىتاب بەتلىرى -->
+                        <div class="book-pages"></div>
+                        <div class="book-top"></div>
+                        <div class="book-bottom"></div>
+
+                        <!-- ئارقا مۇقاۋا -->
+                        <div class="book-back bg-gradient-to-br from-[#091813] to-[#040907]">
+                            <div class="ornate-border w-full h-full p-4 flex flex-col justify-center items-center">
+                                <i class="fa-solid fa-star-and-crescent text-gold text-2xl mb-3"></i>
+                                <p class="text-xs text-gray-300 leading-relaxed">
+                                    شەرق ئويغىنىش دەۋرىنىڭ بۈيۈك شاھ ئەسىرى. دۆلەت باشقۇرۇش، پەلسەپە، ئەخلاق ۋە دانالىق قامۇسى.
+                                </p>
+                                <div class="mt-4 text-xs text-gold font-bold">BULAQ LUXURY EDITION</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3D ئەسكەرتىش بەلگىسى -->
+                <div class="mt-4 flex items-center gap-3 text-xs text-gray-400 luxury-glass px-4 py-2 rounded-full">
+                    <i class="fa-solid fa-hand-pointer text-gold animate-bounce"></i>
+                    <span>مائۇسنى يۆتكەپ 3D بۇلۇڭنى ئۆزگەرتىڭ ياكى كىتابنى بېسىپ ئىچىنى ئېچىڭ!</span>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ================= 3. كىتاب تۈرلىرى ۋە 3D كىتاب دۇكىنى ================= -->
+    <section id="catalog" class="relative z-10 max-w-7xl mx-auto px-4 sm:px-8 py-16">
+        
+        <!-- ماۋزۇ ۋە سۈزگۈچ كۇنۇپكىلىرى -->
+        <div class="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
+            <div>
+                <span class="text-bulaq-cyan text-sm font-bold tracking-wider uppercase flex items-center gap-2">
+                    <i class="fa-solid fa-sparkles"></i> 3D كىتاب كۆرگەزمىسى
+                </span>
+                <h2 class="text-3xl sm:text-5xl font-black mt-2">بۇلاق <span class="gold-gradient-text">ئالتۇن خەزىنىسى</span></h2>
+            </div>
+
+            <!-- تۈر تاللاش كۇنۇپكىلىرى -->
+            <div class="flex flex-wrap gap-2" id="categoryFilters">
+                <button onclick="setCategory('all', this)" class="cat-btn active px-5 py-2.5 rounded-full text-sm font-bold gold-button shadow-lg">ھەممىسى</button>
+                <button onclick="setCategory('classic', this)" class="cat-btn px-5 py-2.5 rounded-full text-sm font-semibold luxury-glass text-gray-300 hover:text-gold transition">كىلاسسىك دۇردانىلەر</button>
+                <button onclick="setCategory('novel', this)" class="cat-btn px-5 py-2.5 rounded-full text-sm font-semibold luxury-glass text-gray-300 hover:text-gold transition">تارىخىي رومانلار</button>
+                <button onclick="setCategory('philosophy', this)" class="cat-btn px-5 py-2.5 rounded-full text-sm font-semibold luxury-glass text-gray-300 hover:text-gold transition">پەلسەپە ۋە پىسخىكا</button>
+                <button onclick="setCategory('tech', this)" class="cat-btn px-5 py-2.5 rounded-full text-sm font-semibold luxury-glass text-gray-300 hover:text-gold transition">پەن-تېخنىكا ۋە كەلگۈسى</button>
+            </div>
+        </div>
+
+        <!-- 3D كىتاب كارتىلىرى تىزمىسى (Grid) -->
+        <div id="booksGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            <!-- JavaScript ئارقىلىق ئاپتوماتىك ھاسىل قىلىنىدۇ -->
+        </div>
+
+    </section>
+
+    <!-- ================= 4. مەخسۇس ھەشەمەتلىك توپلام (VIP Banner) ================= -->
+    <section class="relative z-10 max-w-7xl mx-auto px-4 sm:px-8 py-14">
+        <div class="luxury-glass rounded-3xl p-8 sm:p-12 border border-gold/40 relative overflow-hidden">
+            <div class="absolute -left-20 -bottom-20 w-96 h-96 bg-gold/15 rounded-full blur-3xl pointer-events-none"></div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                <div class="lg:col-span-8 space-y-4">
+                    <div class="inline-block px-4 py-1 rounded-full bg-amber-500/20 border border-gold text-gold text-xs font-bold">
+                        چەكلىك ساندا نەشر قىلىندى • VIP ساندۇقلۇق يۈرۈشلۈك
+                    </div>
+                    <h3 class="text-2xl sm:text-4xl font-black leading-snug">
+                        «بۇلاق كىلاسسىكلىرى» — <span class="gold-gradient-text">ئالتۇن ھەللىك ياغاچ ساندۇقلۇق توپلام</span>
+                    </h3>
+                    <p class="text-gray-300 text-sm sm:text-base leading-relaxed">
+                        «قۇتادغۇبىلىك»، «دىۋانۇ لۇغاتىت تۈرك» (3 توم) ۋە «ئىز» رومانىنىڭ ھەقىقىي تېرە مۇقاۋىلىق، 24K ئالتۇن ھەل بېرىلگەن يىغىپ ساقلاش نۇسخىسى. ياڭاق ياغىچىدىن ياسالغان نەقىشلىك ساندۇق بىلەن بىللە يەتكۈزۈلىدۇ.
+                    </p>
+                    <div class="flex flex-wrap items-center gap-6 pt-3">
+                        <div>
+                            <span class="text-xs text-gray-400 block">مەخسۇس باھاسى:</span>
+                            <span class="text-3xl font-black gold-gradient-text">¥ 1,280</span>
+                            <span class="text-sm text-gray-500 line-through mr-2">¥ 1,650</span>
+                        </div>
+                        <button onclick="addVIPBundle()" class="gold-button px-8 py-3.5 rounded-full font-bold text-sm shadow-lg flex items-center gap-2">
+                            <i class="fa-solid fa-gem"></i>
+                            <span>VIP توپلامنى سېۋەتكە قوشۇش</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-4 flex justify-center">
+                    <div class="w-56 h-56 rounded-full border-2 border-gold/40 bg-gradient-to-tr from-gold/20 via-transparent to-bulaq-cyan/20 flex flex-col items-center justify-center text-center p-6 shadow-2xl">
+                        <i class="fa-solid fa-box-open text-5xl text-gold mb-3"></i>
+                        <span class="font-black text-lg text-white">5 توملۇق خان جەمەتى توپلىمى</span>
+                        <span class="text-xs text-bulaq-cyan mt-1">ھەقسىز تېز يەتكۈزۈش</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================= 5. 360° 3D كىتاب تەكشۈرۈش كۆزنىكى (3D Inspector Modal) ================= -->
+    <div id="modal3D" class="fixed inset-0 z-50 hidden bg-black/85 backdrop-blur-xl flex items-center justify-center p-4">
+        <div class="luxury-glass border border-gold/40 rounded-3xl max-w-4xl w-full p-6 sm:p-10 relative overflow-hidden shadow-2xl">
+            <!-- تاقاش كۇنۇپكىسى -->
+            <button onclick="close3DModal()" class="absolute top-5 left-5 w-11 h-11 rounded-full bg-white/10 hover:bg-gold hover:text-obsidian text-white flex items-center justify-center transition z-20">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
+                <!-- 3D ئايلاندۇرۇش سەھنىسى -->
+                <div class="md:col-span-6 flex flex-col items-center justify-center py-6 bg-obsidian/60 rounded-2xl border border-white/10">
+                    <div class="scene-3d h-80 w-full" id="modalScene">
+                        <div id="modalBookContainer"></div>
+                    </div>
+
+                    <!-- 360 گىرادۇس كونترول قىلىش بالدىقى -->
+                    <div class="w-full px-6 mt-4 space-y-3">
+                        <div class="flex justify-between text-xs text-gold">
+                            <span><i class="fa-solid fa-rotate"></i> 360° ئايلاندۇرۇش بالدىقى</span>
+                            <span id="angleValue">30°</span>
+                        </div>
+                        <input type="range" id="rotateSlider" min="-180" max="180" value="30" oninput="rotateModalBook(this.value)"
+                            class="w-full accent-gold cursor-pointer h-1.5 bg-gray-700 rounded-lg">
+                        
+                        <div class="flex justify-center gap-3 pt-2">
+                            <button onclick="toggleModalBookCover()" class="px-4 py-2 rounded-full bg-bulaq-cyan/20 border border-bulaq-cyan text-bulaq-cyan text-xs font-bold hover:bg-bulaq-cyan hover:text-obsidian transition">
+                                <i class="fa-solid fa-book-open mr-1"></i> مۇقاۋىنى ئېچىش / يېپىش
+                            </button>
+                            <button onclick="rotateModalBook(180)" class="px-4 py-2 rounded-full bg-white/10 text-gray-200 text-xs hover:bg-gold hover:text-obsidian transition">
+                                ئارقا مۇقاۋىسىنى كۆرۈش
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- كىتاب تەپسىلاتى -->
+                <div class="md:col-span-6 space-y-4 text-right">
+                    <span id="modalCategory" class="text-xs px-3 py-1 rounded-full bg-gold/20 text-gold border border-gold/30">كىلاسسىك ئەسەر</span>
+                    <h3 id="modalTitle" class="text-3xl sm:text-4xl font-black gold-gradient-text">كىتاب ئىسمى</h3>
+                    <p id="modalAuthor" class="text-sm text-bulaq-cyan font-semibold">ئاپتورى: ---</p>
+                    
+                    <p id="modalDesc" class="text-gray-300 text-sm leading-relaxed border-y border-white/10 py-4"></p>
+
+                    <div class="bg-midnight/90 p-4 rounded-xl border border-gold/20">
+                        <div class="text-xs text-gold mb-1"><i class="fa-solid fa-quote-right ml-1"></i> كىتابتىن ئالتۇن ئۈزۈندە:</div>
+                        <p id="modalQuote" class="text-xs text-gray-200 italic leading-relaxed"></p>
+                    </div>
+
+                    <div class="flex items-center justify-between pt-4">
+                        <div>
+                            <span class="text-xs text-gray-400 block">باھاسى:</span>
+                            <span id="modalPrice" class="text-3xl font-black gold-gradient-text">¥ 0</span>
+                        </div>
+                        <button id="modalAddCartBtn" class="gold-button px-7 py-3.5 rounded-full font-extrabold text-sm flex items-center gap-2 shadow-xl">
+                            <i class="fa-solid fa-cart-plus"></i>
+                            <span>سېۋەتكە قوشۇش</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= 6. سېتىۋېلىش سېۋىتى (Slide-Over Shopping Cart) ================= -->
+    <div id="cartDrawer" class="fixed inset-0 z-50 hidden">
+        <div onclick="toggleCart()" class="absolute inset-0 bg-black/70 backdrop-blur-sm"></div>
+        <div class="absolute top-0 left-0 h-full w-full max-w-md luxury-glass border-r border-gold/30 p-6 flex flex-col justify-between shadow-2xl">
+            <!-- سېۋەت بېشى -->
+            <div class="flex items-center justify-between border-b border-white/10 pb-4">
+                <div class="flex items-center gap-3">
+                    <i class="fa-solid fa-bag-shopping text-2xl text-gold"></i>
+                    <h3 class="text-xl font-black">سىزنىڭ كىتاب سېۋىتىڭىز</h3>
+                </div>
+                <button onclick="toggleCart()" class="w-9 h-9 rounded-full bg-white/10 hover:bg-red-500/80 text-white flex items-center justify-center transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- سېۋەتتىكى كىتابلار تىزىملىكى -->
+            <div id="cartItemsList" class="flex-1 overflow-y-auto py-4 space-y-4">
+                <!-- JS ئارقىلىق تولدۇرۇلىدۇ -->
+            </div>
+
+            <!-- جەمئىي باھا ۋە پۇل تۆلەش -->
+            <div class="border-t border-gold/30 pt-4 space-y-4">
+                <div class="flex justify-between items-center text-lg font-bold">
+                    <span class="text-gray-300">جەمئىي سومما:</span>
+                    <span id="cartTotalPrice" class="text-2xl font-black gold-gradient-text">¥ 0</span>
+                </div>
+                <button onclick="checkoutOrder()" class="w-full gold-button py-4 rounded-xl font-black text-base shadow-lg flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-credit-card"></i>
+                    <span>ھەشەمەتلىك زاكازنى تاماملاش</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ئەسكەرتىش ئۇچۇرى (Toast Notification) -->
+    <div id="toastMsg" class="fixed bottom-6 left-6 z-50 hidden luxury-glass border border-gold px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3">
+        <i class="fa-solid fa-circle-check text-2xl text-bulaq-cyan"></i>
+        <span id="toastText" class="text-sm font-bold text-white">كىتاب سېۋەتكە قوشۇلدى!</span>
+    </div>
+
+    <!-- ================= 7. ئاستى قىسمى (Footer) ================= -->
+    <footer class="relative z-10 border-t border-gold/20 bg-obsidian/90 py-12 mt-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-8 flex flex-col sm:flex-row items-center justify-between gap-6">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gold/20 border border-gold flex items-center justify-center text-gold">
+                    <i class="fa-solid fa-droplet"></i>
+                </div>
+                <div>
+                    <span class="text-xl font-black gold-gradient-text">بۇلاق (BULAQ)</span>
+                    <p class="text-xs text-gray-500">ئەڭ زامانىۋى 3D كىتاب تەتقىقات ۋە سېتىش سۇپىسى</p>
+                </div>
+            </div>
+            <div class="text-xs text-gray-400">
+                © 2026 بۇلاق رەقەملىك كىتاب سارىيى. بارلىق ھوقۇق قوغدالغان.
+            </div>
+        </div>
+    </footer>
+
+    <!-- ================= JAVASCRIPT (3D Engine, Data & Cart Logic) ================= -->
+    <script>
+        // 1. كىتابلار سانلىق مەلۇمات ئامبىرى
+        const booksData = [
+            {
+                id: 0,
+                title: "قۇتادغۇبىلىك",
+                subtitle: "بەختكە باشلايدىغان بىلىم",
+                author: "يۈسۈپ خاس ھاجىپ",
+                category: "classic",
+                catName: "كىلاسسىك دۇردانە",
+                price: 260,
+                rating: "5.0",
+                coverBg: "from-[#0e241d] via-[#071410] to-[#030806]",
+                spineBg: "from-[#0e241d] to-[#040a08]",
+                icon: "fa-crown",
+                desc: "11-ئەسىردە يېزىلغان بۈيۈك پەلسەپىۋى داستان. ئادالەت، دۆلەت، ئەقىل ۋە قانائەتتىن ئىبارەت تۆت ئۇلۇغ تېمىنى مۇنازىرە شەكلىدە بايان قىلغان ئەنگۈشتەر.",
+                quote: "«بىلىم بىل، ئۇقۇش بىل، قىلغىن ئىنسانلىق، بىلىمسىز كىشىگە يوقتۇر شادلىق!»"
+            },
+            {
+                id: 1,
+                title: "ئىز",
+                subtitle: "تارىخىي رومان",
+                author: "ئابدۇرېھىم ئۆتكۈر",
+                category: "novel",
+                catName: "تارىخىي رومان",
+                price: 145,
+                rating: "4.9",
+                coverBg: "from-[#3b1212] via-[#220909] to-[#110404]",
+                spineBg: "from-[#3b1212] to-[#140505]",
+                icon: "fa-compass",
+                desc: "قۇملۇق يوللىرىدا قالغان ئۆچمەس ئىزلار ۋە قەلب تارىخىنى بايان قىلغان، ئوقۇرمەننى چوڭقۇر خىيالغا باشلايدىغان نادىر تارىخىي رومان.",
+                quote: "«ئاتلار چاپىدۇ، چاڭ-توزان قالىدۇ، بوران چىقىدۇ، چاڭ-توزانلار توزۇپ كېتىدۇ، ئەمما ئاتنىڭ ئىزى قالىدۇ...»"
+            },
+            {
+                id: 2,
+                title: "دىۋانۇ لۇغاتىت تۈرك",
+                subtitle: "تۈركىي تىللار دىۋانى",
+                author: "مەھمۇد قەشقەرى",
+                category: "classic",
+                catName: "كىلاسسىك قامۇس",
+                price: 380,
+                rating: "5.0",
+                coverBg: "from-[#0d1f3a] via-[#071121] to-[#03070e]",
+                spineBg: "from-[#0d1f3a] to-[#050b16]",
+                icon: "fa-earth-asia",
+                desc: "تىلشۇناسلىق، تارىخ، جۇغراپىيە، فولكلور ۋە ئەدەبىياتنىڭ بىباھا خەزىنىسى. تۇنجى دۇنيا خەرىتىسى كىرگۈزۈلگەن مۇكەممەل ئالتۇن نەشرى.",
+                quote: "«ئەدەپنىڭ بېشى تىلدۇر. ياخشى سۆز جانغا ئوزۇق، يامان سۆز باشقا قوزۇق.»"
+            },
+            {
+                id: 3,
+                title: "ئويغانغان زېمىن",
+                subtitle: "تولۇق يۈرۈشلۈك رومان",
+                author: "ئابدۇرېھىم ئۆتكۈر",
+                category: "novel",
+                catName: "تارىخىي رومان",
+                price: 210,
+                rating: "4.9",
+                coverBg: "from-[#2d220c] via-[#1c1507] to-[#0c0903]",
+                spineBg: "from-[#2d220c] to-[#120d04]",
+                icon: "fa-mountain-sun",
+                desc: "بىر دەۋرنىڭ داۋالغۇشلىرى، كىشىلىك قىسمەت ۋە ئويغىنىش روھىنى ناھايىتى يۇقىرى بەدىئىي ماھارەت بىلەن يورۇتۇپ بەرگەن چوڭ ھەجىملىك ئەسەر.",
+                quote: "«زېمىن ئويغاندى، ئۇنىڭ يۈرىكىدە يېڭى باھارنىڭ تومۇرى سوقماقتا...»"
+            },
+            {
+                id: 4,
+                title: "ئانا يۇرت",
+                subtitle: "بەدىئىي تارىخىي رومان",
+                author: "زوردۇن سابىر",
+                category: "novel",
+                catName: "تارىخىي رومان",
+                price: 240,
+                rating: "5.0",
+                coverBg: "from-[#112a2e] via-[#09181b] to-[#040b0d]",
+                spineBg: "from-[#112a2e] to-[#061012]",
+                icon: "fa-feather",
+                desc: "تەبىئەت تەسۋىرى، پېرسوناژلار خاراكتېرى ۋە تارىخىي ۋەقەلەرنى تەسىرلىك تىل بىلەن گەۋدىلەندۈرگەن ئەڭ مەشھۇر رومانلارنىڭ بىرى.",
+                quote: "«ئانا يۇرتنىڭ بىر سىقىم تۇپرىقىمۇ يۈرەككە ئوتتەك ئىسسىق تۇيۇلىدۇ.»"
+            },
+            {
+                id: 5,
+                title: "تەپەككۇر سىرلىرى",
+                subtitle: "چوڭقۇر پىسخىكا ۋە روھىيەت",
+                author: "دوكتور ئەركىن سىدىق",
+                category: "philosophy",
+                catName: "پەلسەپە ۋە پىسخىكا",
+                price: 120,
+                rating: "4.8",
+                coverBg: "from-[#251238] via-[#150a21] to-[#09040e]",
+                spineBg: "from-[#251238] to-[#0f0618]",
+                icon: "fa-brain",
+                desc: "ئۆز-ئۆزىنى تونۇش، ۋاقىت باشقۇرۇش، يوشۇرۇن ئاڭ كۈچى ۋە مۇۋەپپەقىيەت قازىنىشنىڭ ئىلمىي قانۇنىيەتلىرى يىغىنچاقلانغان زامانىۋى يېتەكچى.",
+                quote: "«تەقدىرىڭىزنى ئۆزگەرتىشنى خالىسىڭىز، ئاۋۋال كاللىڭىزدىكى تەپەككۇر ئادىتىڭىزنى يېڭىلاڭ.»"
+            },
+            {
+                id: 6,
+                title: "سۈنئىي ئەقىل دەۋرى",
+                subtitle: "كەلگۈسى دۇنيا ۋە تېخنىكا",
+                author: "بۇلاق تەتقىقات مەركىزى",
+                category: "tech",
+                catName: "پەن-تېخنىكا",
+                price: 165,
+                rating: "4.9",
+                coverBg: "from-[#0a2538] via-[#051420] to-[#02090f]",
+                spineBg: "from-[#0a2538] to-[#04101a]",
+                icon: "fa-microchip",
+                desc: "سۈنئىي ئەقىل (AI)، كۋانت ھېسابلاش ۋە رەقەملىك دۇنيانىڭ ئىنسانىيەت كەلگۈسىگە كۆرسىتىدىغان تەسىرى ھەققىدىكى ئەڭ يېڭى ئىلمىي ئەسەر.",
+                quote: "«كەلگۈسى تېخنىكىدىن قورققانلارغا ئەمەس، ئۇنى ئەقىل بىلەن تىزگىنلىگەنلەرگە مەنسۇپ.»"
+            },
+            {
+                id: 7,
+                title: "ئالتۇن بۇلاق ھېكمەتلىرى",
+                subtitle: "شەرق پەلسەپە تاللانمىلىرى",
+                author: "ئەلشىر ناۋائىي / فارابى",
+                category: "philosophy",
+                catName: "پەلسەپە ۋە ھېكمەت",
+                price: 190,
+                rating: "5.0",
+                coverBg: "from-[#2f2410] via-[#1c1508] to-[#0d0a04]",
+                spineBg: "from-[#2f2410] to-[#120d05]",
+                icon: "fa-scroll",
+                desc: "شەرق مۇتەپەككۇرلىرىنىڭ ھايات، گۈزەللىك، مۇھەببەت ۋە ئىنسان قەدرى توغرىسىدىكى ياقۇتتەك ھېكمەتلىرى مەجمۇئەسى.",
+                quote: "«ئىلىم شۇنداق بىر خەزىنىدۇركى، ئۇنى خەجلىگەنسېرى تېخىمۇ كۆپىيىدۇ.»"
+            }
+        ];
+
+        let currentCategory = 'all';
+        let cart = [
+            { ...booksData[0], qty: 1 },
+            { ...booksData[1], qty: 1 }
+        ];
+
+        // 2. 3D كىتاب HTML قۇرۇلمىسىنى ياساش فۇنكسىيەسى
+        function generate3DBookHTML(book, extraClasses = "") {
+            return `
+                <div class="book-3d ${extraClasses}" id="book-model-${book.id}">
+                    <div class="book-inside-page">
+                        <div class="border-b border-amber-900/30 pb-1 flex justify-between text-[10px] text-amber-900 font-bold">
+                            <span>${book.title}</span>
+                            <span>بۇلاق نەشرى</span>
+                        </div>
+                        <div class="my-auto text-center px-1">
+                            <i class="fa-solid ${book.icon} text-amber-700 text-base mb-2"></i>
+                            <p class="text-[11px] font-bold leading-relaxed text-amber-950">${book.quote}</p>
+                        </div>
+                        <div class="text-[9px] text-center text-amber-800">— ${book.author}</div>
+                    </div>
+
+                    <div class="book-front">
+                        <div class="front-cover-outer bg-gradient-to-br ${book.coverBg} p-3 flex flex-col justify-between">
+                            <div class="ornate-border w-full h-full p-3 flex flex-col justify-between items-center text-center">
+                                <div class="text-[9px] tracking-widest text-gold/80">BULAQ EDITION</div>
+                                <div class="my-auto space-y-2">
+                                    <div class="w-11 h-11 mx-auto rounded-full border border-gold/60 flex items-center justify-center bg-gold/10">
+                                        <i class="fa-solid ${book.icon} text-lg text-gold"></i>
+                                    </div>
+                                    <h4 class="text-lg font-black gold-gradient-text leading-snug">${book.title}</h4>
+                                    <p class="text-[10px] text-amber-200/75">${book.subtitle}</p>
+                                </div>
+                                <div class="w-full border-t border-gold/30 pt-2">
+                                    <div class="text-[10px] font-bold text-gold">${book.author}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="front-cover-inner">
+                            <i class="fa-solid fa-feather-pointed text-amber-800 text-xl mb-2"></i>
+                            <div class="text-[11px] font-bold text-amber-950">${book.title}</div>
+                            <div class="text-[9px] text-amber-800 mt-1">ئالتۇن مۆھۈرلۈك ئەسلى نۇسخا</div>
+                        </div>
+                    </div>
+
+                    <div class="book-spine bg-gradient-to-b ${book.spineBg}">
+                        <span class="spine-title">${book.title}</span>
+                    </div>
+
+                    <div class="book-pages"></div>
+                    <div class="book-top"></div>
+                    <div class="book-bottom"></div>
+
+                    <div class="book-back bg-gradient-to-br ${book.coverBg}">
+                        <div class="ornate-border w-full h-full p-3 flex flex-col justify-center items-center">
+                            <i class="fa-solid fa-droplet text-gold text-lg mb-2"></i>
+                            <p class="text-[10px] text-gray-300 leading-relaxed line-clamp-5">${book.desc}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 3. كىتابلارنى ئېكرانغا چىقىرىش
+        function renderBooks() {
+            const grid = document.getElementById('booksGrid');
+            const searchQuery = document.getElementById('searchInput').value.trim().toLowerCase();
+
+            const filtered = booksData.filter(book => {
+                const matchesCat = currentCategory === 'all' || book.category === currentCategory;
+                const matchesSearch = book.title.toLowerCase().includes(searchQuery) || 
+                                      book.author.toLowerCase().includes(searchQuery);
+                return matchesCat && matchesSearch;
+            });
+
+            grid.innerHTML = filtered.map(book => `
+                <div class="book-card luxury-glass luxury-glass-hover rounded-3xl p-6 flex flex-col justify-between relative group">
+                    <!-- يۇلتۇز باھاسى ۋە 3D كۇنۇپكىسى -->
+                    <div class="flex justify-between items-center z-10">
+                        <span class="px-3 py-1 rounded-full bg-gold/15 border border-gold/30 text-gold text-xs font-bold">
+                            <i class="fa-solid fa-star text-[10px] ml-1"></i>${book.rating}
+                        </span>
+                        <button onclick="open3DModal(${book.id})" class="px-3 py-1.5 rounded-full bg-bulaq-cyan/15 border border-bulaq-cyan/40 text-bulaq-cyan text-xs font-bold hover:bg-bulaq-cyan hover:text-obsidian transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-cube"></i> 3D كۆرۈش
+                        </button>
+                    </div>
+
+                    <!-- 3D كىتاب سەھنىسى -->
+                    <div class="scene-3d py-8 my-2" onclick="open3DModal(${book.id})">
+                        ${generate3DBookHTML(book)}
+                    </div>
+
+                    <!-- كىتاب ئۇچۇرى ۋە سېتىۋېلىش -->
+                    <div class="space-y-3 pt-2 border-t border-white/10">
+                        <div>
+                            <span class="text-[11px] text-bulaq-cyan">${book.catName}</span>
+                            <h3 class="text-xl font-black text-white group-hover:text-gold transition">${book.title}</h3>
+                            <p class="text-xs text-gray-400 mt-0.5">ئاپتور: ${book.author}</p>
+                        </div>
+
+                        <div class="flex items-center justify-between pt-2">
+                            <div>
+                                <span class="text-xs text-gray-400 block">باھاسى</span>
+                                <span class="text-2xl font-black gold-gradient-text">¥ ${book.price}</span>
+                            </div>
+                            <button onclick="addToCart(${book.id})" class="gold-button px-5 py-2.5 rounded-full font-bold text-xs flex items-center gap-2 shadow-md">
+                                <i class="fa-solid fa-bag-shopping"></i>
+                                <span>سېۋەتكە قوشۇش</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 4. سۈزگۈچ ۋە ئىزدەش فۇنكسىيەسى
+        function setCategory(cat, btnElement) {
+            currentCategory = cat;
+            document.querySelectorAll('.cat-btn').forEach(btn => {
+                btn.className = "cat-btn px-5 py-2.5 rounded-full text-sm font-semibold luxury-glass text-gray-300 hover:text-gold transition";
+            });
+            btnElement.className = "cat-btn active px-5 py-2.5 rounded-full text-sm font-bold gold-button shadow-lg";
+            renderBooks();
+        }
+
+        function filterBooks() {
+            renderBooks();
+        }
+
+        // 5. باش بەتتىكى چوڭ 3D كىتابنىڭ مائۇسقا ئەگىشىش ۋە ئېچىلىش ئىقتىدارى
+        const heroSection = document.getElementById('heroSection');
+        const heroBook = document.getElementById('heroBook');
+        let isHeroBookOpen = false;
+
+        heroSection.addEventListener('mousemove', (e) => {
+            if (isHeroBookOpen) return;
+            const rect = heroSection.getBoundingClientRect();
+            const x = (e.clientX - rect.left) / rect.width - 0.5;
+            const y = (e.clientY - rect.top) / rect.height - 0.5;
+            const rotateY = 30 + (x * 45);
+            const rotateX = 10 - (y * 30);
+            heroBook.style.transform = `rotateY(${rotateY}deg) rotateX(${rotateX}deg)`;
+        });
+
+        heroSection.addEventListener('mouseleave', () => {
+            if (!isHeroBookOpen) {
+                heroBook.style.transform = `rotateY(32deg) rotateX(12deg)`;
+            }
+        });
+
+        function toggleHeroBookOpen() {
+            isHeroBookOpen = !isHeroBookOpen;
+            heroBook.classList.toggle('is-open', isHeroBookOpen);
+            const btnText = document.getElementById('heroOpenBtnText');
+            if (isHeroBookOpen) {
+                heroBook.style.transform = `rotateY(10deg) rotateX(6deg) translateX(-40px)`;
+                btnText.innerText = "مۇقاۋىنى يېپىش";
+            } else {
+                heroBook.style.transform = `rotateY(32deg) rotateX(12deg)`;
+                btnText.innerText = "مۇقاۋىنى 3D ئېچىپ ئوقۇش";
+            }
+        }
+
+        // 6. 360° 3D تەكشۈرۈش كۆزنىكى (Modal)
+        function open3DModal(bookId) {
+            const book = booksData.find(b => b.id === bookId);
+            if (!book) return;
+
+            document.getElementById('modalCategory').innerText = book.catName;
+            document.getElementById('modalTitle').innerText = book.title;
+            document.getElementById('modalAuthor').innerText = "ئاپتورى: " + book.author;
+            document.getElementById('modalDesc').innerText = book.desc;
+            document.getElementById('modalQuote').innerText = book.quote;
+            document.getElementById('modalPrice').innerText = "¥ " + book.price;
+
+            const container = document.getElementById('modalBookContainer');
+            container.innerHTML = generate3DBookHTML(book, "scale-110");
+            const modalBookEl = container.querySelector('.book-3d');
+            modalBookEl.id = "activeModal3DBook";
+
+            document.getElementById('rotateSlider').value = 30;
+            document.getElementById('angleValue').innerText = "30°";
+
+            document.getElementById('modalAddCartBtn').onclick = () => {
+                addToCart(book.id);
+                close3DModal();
+            };
+
+            document.getElementById('modal3D').classList.remove('hidden');
+        }
+
+        function close3DModal() {
+            document.getElementById('modal3D').classList.add('hidden');
+        }
+
+        function rotateModalBook(angle) {
+            const modalBook = document.getElementById('activeModal3DBook');
+            if (modalBook) {
+                modalBook.style.transform = `rotateY(${angle}deg) rotateX(8deg) scale(1.1)`;
+                document.getElementById('angleValue').innerText = `${angle}°`;
+                document.getElementById('rotateSlider').value = angle;
+            }
+        }
+
+        function toggleModalBookCover() {
+            const modalBook = document.getElementById('activeModal3DBook');
+            if (modalBook) {
+                modalBook.classList.toggle('is-open');
+            }
+        }
+
+        // 7. سېۋەت باشقۇرۇش سىستېمىسى
+        function toggleCart() {
+            const drawer = document.getElementById('cartDrawer');
+            drawer.classList.toggle('hidden');
+            renderCart();
+        }
+
+        function addToCart(bookId) {
+            const book = booksData.find(b => b.id === bookId);
+            const existing = cart.find(item => item.id === bookId);
+            if (existing) {
+                existing.qty += 1;
+            } else {
+                cart.push({ ...book, qty: 1 });
+            }
+            updateCartBadge();
+            showToast(`«${book.title}» سېۋىتىڭىزگە قوشۇلدى!`);
+        }
+
+        function addVIPBundle() {
+            const vipId = 999;
+            const existing = cart.find(item => item.id === vipId);
+            if (existing) {
+                existing.qty += 1;
+            } else {
+                cart.push({
+                    id: vipId,
+                    title: "بۇلاق كىلاسسىكلىرى (5 توملۇق VIP ساندۇق)",
+                    author: "ئالتۇن ھەللىك توپلام",
+                    price: 1280,
+                    qty: 1
+                });
+            }
+            updateCartBadge();
+            showToast("VIP ئالتۇن ساندۇقلۇق توپلام سېۋەتكە قوشۇلدى!");
+        }
+
+        function changeQty(id, delta) {
+            const item = cart.find(i => i.id === id);
+            if (!item) return;
+            item.qty += delta;
+            if (item.qty <= 0) {
+                cart = cart.filter(i => i.id !== id);
+            }
+            updateCartBadge();
+            renderCart();
+        }
+
+        function updateCartBadge() {
+            const totalCount = cart.reduce((sum, item) => sum + item.qty, 0);
+            document.getElementById('cartBadge').innerText = totalCount;
+        }
+
+        function renderCart() {
+            const list = document.getElementById('cartItemsList');
+            if (cart.length === 0) {
+                list.innerHTML = `
+                    <div class="text-center py-16 text-gray-400">
+                        <i class="fa-solid fa-book-open text-4xl text-gold/40 mb-3"></i>
+                        <p>سېۋىتىڭىز قۇرۇق ئىكەن</p>
+                    </div>
+                `;
+                document.getElementById('cartTotalPrice').innerText = "¥ 0";
+                return;
+            }
+
+            let total = 0;
+            list.innerHTML = cart.map(item => {
+                total += item.price * item.qty;
+                return `
+                    <div class="luxury-glass p-4 rounded-2xl border border-gold/20 flex items-center justify-between gap-3">
+                        <div>
+                            <h4 class="font-bold text-white text-sm">${item.title}</h4>
+                            <p class="text-xs text-gray-400">${item.author}</p>
+                            <span class="text-sm font-black text-gold mt-1 block">¥ ${item.price}</span>
+                        </div>
+                        <div class="flex items-center gap-2 bg-obsidian px-3 py-1.5 rounded-full border border-white/10">
+                            <button onclick="changeQty(${item.id}, 1)" class="text-gold hover:scale-125 transition font-bold">+</button>
+                            <span class="text-xs font-bold px-2">${item.qty}</span>
+                            <button onclick="changeQty(${item.id}, -1)" class="text-red-400 hover:scale-125 transition font-bold">-</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            document.getElementById('cartTotalPrice').innerText = `¥ ${total.toLocaleString()}`;
+        }
+
+        function checkoutOrder() {
+            if (cart.length === 0) return;
+            cart = [];
+            updateCartBadge();
+            toggleCart();
+            showToast("زاكازىڭىز مۇۋەپپەقىيەتلىك قوبۇل قىلىندى! رەھمەت!");
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toastMsg');
+            document.getElementById('toastText').innerText = message;
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3200);
+        }
+
+        // 8. ئالتۇن ۋە بۇلاق نۇر زەررىچىلىرى (Background Particles)
+        const canvas = document.getElementById('particleCanvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        for (let i = 0; i < 55; i++) {
+            particles.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                r: Math.random() * 2.2 + 0.5,
+                speedY: -(Math.random() * 0.4 + 0.15),
+                color: Math.random() > 0.35 ? 'rgba(212, 175, 55, 0.55)' : 'rgba(0, 242, 254, 0.45)'
+            });
+        }
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => {
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+                ctx.fillStyle = p.color;
+                ctx.fill();
+                p.y += p.speedY;
+                if (p.y < 0) {
+                    p.y = canvas.height;
+                    p.x = Math.random() * canvas.width;
+                }
+            });
+            requestAnimationFrame(animateParticles);
+        }
+
+        // باشلاش
+        renderBooks();
+        updateCartBadge();
+        animateParticles();
+    </script>
+</body>
+</html>
